@@ -9,6 +9,14 @@ Blueberry dragon edition.
 * `pip install -r requirements.txt`
 * `python blueberry_dragon.py`
 
+#### Caveats..
+I am running with:
+* Python 3.6.8
+* MacOS Mojave 10.14.4 
+
+As of now, python3.7 + mojave + pygame is not a good combo-wombo.
+Python3.6 is a good workaround. 
+
 ### How to play
 You start so so tiny. 
 Avoid the big bluebs.
