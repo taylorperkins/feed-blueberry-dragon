@@ -21,7 +21,7 @@ GRASSCOLOR = (163,139,115)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
-CAMERASLACK = 90                          # how far from the center the squirrel moves before moving the camera
+CAMERASLACK = 90                          # how far from the center the dragon moves before moving the camera
 MOVERATE = 9                              # how fast the player moves
 BOUNCERATE = 6                            # how fast the player bounces (large is slower)
 BOUNCEHEIGHT = 30                         # how high the player bounces
@@ -32,15 +32,15 @@ GAMEOVERTIME = 4                          # how long the "game over" text stays 
 MAXHEALTH = 3                             # how much health the player starts with
 
 NUM_ROCKS = 80                             # number of grass objects in the active area
-NUM_DRAGONS = 30                         # number of squirrels in the active area
-SQUIRRELMINSPEED = 3                      # slowest squirrel speed
-SQUIRRELMAXSPEED = 7                      # fastest squirrel speed
+NUM_DRAGONS = 30                         # number of dragons in the active area
+SQUIRRELMINSPEED = 3                      # slowest dragon speed
+SQUIRRELMAXSPEED = 7                      # fastest dragon speed
 DIRCHANGEFREQ = 2                         # % chance of direction change per frame
 LEFT = 'left'
 RIGHT = 'right'
 
 """
-This program has three data structures to represent the player, enemy squirrels, and grass background objects. The data structures are dictionaries with the following keys:
+This program has three data structures to represent the player, enemy dragons, and rock background objects. The data structures are dictionaries with the following keys:
 
 Keys used by all three data structures:
     'x' - the left edge coordinate of the object in the game world (not a pixel coordinate on the screen)
@@ -48,21 +48,21 @@ Keys used by all three data structures:
     'rect' - the pygame.Rect object representing where on the screen the object is located.
     
 Player data structure keys:
-    'surface' - the pygame.Surface object that stores the image of the squirrel which will be drawn to the screen.
+    'surface' - the pygame.Surface object that stores the image of the dragon which will be drawn to the screen.
     'facing' - either set to LEFT or RIGHT, stores which direction the player is facing.
     'size' - the width and height of the player in pixels. (The width & height are always the same.)
     'bounce' - represents at what point in a bounce the player is in. 0 means standing (no bounce), up to BOUNCERATE (the completion of the bounce)
-    'health' - an integer showing how many more times the player can be hit by a larger squirrel before dying.
+    'health' - an integer showing how many more times the player can be hit by a larger dragon before dying.
     
 Enemy Squirrel data structure keys:
-    'surface' - the pygame.Surface object that stores the image of the squirrel which will be drawn to the screen.
-    'movex' - how many pixels per frame the squirrel moves horizontally. A negative integer is moving to the left, a positive to the right.
-    'movey' - how many pixels per frame the squirrel moves vertically. A negative integer is moving up, a positive moving down.
-    'width' - the width of the squirrel's image, in pixels
-    'height' - the height of the squirrel's image, in pixels
+    'surface' - the pygame.Surface object that stores the image of the dragon which will be drawn to the screen.
+    'movex' - how many pixels per frame the dragon moves horizontally. A negative integer is moving to the left, a positive to the right.
+    'movey' - how many pixels per frame the dragon moves vertically. A negative integer is moving up, a positive moving down.
+    'width' - the width of the dragon's image, in pixels
+    'height' - the height of the dragon's image, in pixels
     'bounce' - represents at what point in a bounce the player is in. 0 means standing (no bounce), up to BOUNCERATE (the completion of the bounce)
-    'bouncerate' - how quickly the squirrel bounces. A lower number means a quicker bounce.
-    'bounceheight' - how high (in pixels) the squirrel bounces
+    'bouncerate' - how quickly the dragon bounces. A lower number means a quicker bounce.
+    'bounceheight' - how high (in pixels) the dragon bounces
 
 Grass data structure keys:
     'grassImage' - an integer that refers to the index of the pygame.Surface object in GRASSIMAGES used for this grass object
@@ -83,7 +83,7 @@ class BDGame:
     RED = (255, 0, 0)
 
     """"""
-    CAMERASLACK = 90  # how far from the center the squirrel moves before moving the camera
+    CAMERASLACK = 90  # how far from the center the dragon moves before moving the camera
     MOVERATE = 9  # how fast the player moves
     BOUNCERATE = 6  # how fast the player bounces (large is slower)
     BOUNCEHEIGHT = 30  # how high the player bounces
@@ -94,9 +94,9 @@ class BDGame:
     MAXHEALTH = 3  # how much health the player starts with
 
     NUM_ROCKS = 80  # number of rock objects in the active area
-    NUM_DRAGONS = 30  # number of squirrels in the active area
-    SQUIRRELMINSPEED = 3  # slowest squirrel speed
-    SQUIRRELMAXSPEED = 7  # fastest squirrel speed
+    NUM_DRAGONS = 30  # number of dragons in the active area
+    SQUIRRELMINSPEED = 3  # slowest dragon speed
+    SQUIRRELMAXSPEED = 7  # fastest dragon speed
     DIRCHANGEFREQ = 2  # % chance of direction change per frame
     LEFT = 'left'
     RIGHT = 'right'
@@ -142,15 +142,41 @@ class BDGame:
         self.move_down = False
 
         self.rock_objs = []  # stores all the grass objects in the game
-        self.dragon_objs = []  # stores all the non-player squirrel objects
+        self.dragon_objs = []  # stores all the non-player dragon objects
 
         # start off with some random grass images on the screen
         for i in range(10):
-            self.rock_objs.append(self._make_new_grass(self.camera_x, self.camera_y))
+            self.rock_objs.append(self._make_new_rock(self.camera_x, self.camera_y))
             self.rock_objs[i]['x'] = random.randint(0, WINWIDTH)
             self.rock_objs[i]['y'] = random.randint(0, WINHEIGHT)
 
-    def _make_new_grass(self, camera_x, camera_y):
+    def _make_new_dragon(self, camera_x, camera_y):
+        dragon = {}
+
+        general_size = random.randint(5, 25)
+        multiplier = random.randint(1, 3)
+
+        dragon['width'] = (general_size + random.randint(0, 10)) * multiplier
+        dragon['height'] = (general_size + random.randint(0, 10)) * multiplier
+
+        dragon['x'], dragon['y'] = self._get_random_off_camera_pos(camera_x, camera_y, dragon['width'], dragon['height'])
+
+        dragon['movex'] = self._get_random_velocity()
+        dragon['movey'] = self._get_random_velocity()
+
+        if dragon['movex'] < 0:  # squirrel is facing left
+            dragon['surface'] = pygame.transform.scale(L_DRAGON_IMG, (dragon['width'], dragon['height']))
+        else:  # squirrel is facing right
+            dragon['surface'] = pygame.transform.scale(R_DRAGON_IMG, (dragon['width'], dragon['height']))
+
+        dragon['bounce'] = 0
+
+        dragon['bouncerate'] = random.randint(10, 18)
+        dragon['bounceheight'] = random.randint(10, 50)
+
+        return dragon
+
+    def _make_new_rock(self, camera_x, camera_y):
         gr = dict()
 
         gr['grassImage'] = random.randint(0, len(GRASSIMAGES) - 1)
@@ -213,10 +239,10 @@ class BDGame:
             if self._is_outside_active_area(self.camera_x, self.camera_y, obj_list[i]):
                 del obj_list[i]
 
-    def _add_more_objs(self, obj_list, default_obj_size):
-        # add more grass & squirrels if we don't have enough.
+    def _add_more_objs(self, obj_list, default_obj_size, obj_creation_func):
+        # add more grass & dragons if we don't have enough.
         while len(obj_list) < default_obj_size:
-            obj_list.append(self._make_new_grass(self.camera_x, self.camera_y))
+            obj_list.append(obj_creation_func(self.camera_x, self.camera_y))
 
     def _adjust_player_camera(self):
         player_center_x = self.player_obj['x'] + int(self.player_obj['size'] / 2)
@@ -231,14 +257,31 @@ class BDGame:
         elif player_center_y - (self.camera_y + HALF_WINHEIGHT) > CAMERASLACK:
             self.camera_y = player_center_y - CAMERASLACK - HALF_WINHEIGHT
 
+    def _draw_player_dragon(self):
+        # draw the player squirrel
+        flash_is_on = round(time.time(), 1) * 10 % 2 == 1
+
+        if not self.game_over_mode and not (self.invulnerable_mode and flash_is_on):
+            self.player_obj['rect'] = pygame.Rect((
+                self.player_obj['x'] - self.camera_x,
+                self.player_obj['y'] - self.camera_y - self._get_bounce_amount(
+                    self.player_obj['bounce'],
+                    BOUNCERATE,
+                    BOUNCEHEIGHT),
+                self.player_obj['size'],
+                self.player_obj['size']))
+
+            DISPLAYSURF.blit(self.player_obj['surface'], self.player_obj['rect'])
+
     def _draw_dragons(self):
         # draw the other dragons
         for d_obj in self.dragon_objs:
             d_obj['rect'] = pygame.Rect((
                 d_obj['x'] - self.camera_x,
-                d_obj['y'] - self.camera_y - self._get_bounce_amount(d_obj['bounce'],
-                                                                     d_obj['bouncerate'],
-                                                                     d_obj['bounceheight']),
+                d_obj['y'] - self.camera_y - self._get_bounce_amount(
+                    d_obj['bounce'],
+                    d_obj['bouncerate'],
+                    d_obj['bounceheight']),
                 d_obj['width'],
                 d_obj['height']))
 
@@ -307,7 +350,7 @@ class BDGame:
                     return
 
             elif event.type == KEYUP:
-                # stop moving the player's squirrel
+                # stop moving the player's dragon
                 if event.key in (K_LEFT, K_a):
                     self.move_left = False
                 elif event.key in (K_RIGHT, K_d):
@@ -417,8 +460,8 @@ class BDGame:
             self._delete_unused_objs(self.dragon_objs)
 
             # add more rocks and dragons if we dont have enough
-            self._add_more_objs(self.rock_objs, NUM_ROCKS)
-            self._add_more_objs(self.dragon_objs, NUM_DRAGONS)
+            self._add_more_objs(self.rock_objs, NUM_ROCKS, self._make_new_rock)
+            self._add_more_objs(self.dragon_objs, NUM_DRAGONS, self._make_new_dragon)
 
             self._adjust_player_camera()
 
@@ -427,6 +470,8 @@ class BDGame:
 
             self._draw_dragons()
             self._draw_rocks()
+
+            self._draw_player_dragon()
 
             # draw the health meter
             self._draw_health_meter()
@@ -459,8 +504,8 @@ def main():
     pygame.display.set_caption('Blueberry Dragon Eat Blueberry Dragon')
 
     # load the image files
-    L_DRAGON_IMG = pygame.transform.flip(R_DRAGON_IMG, True, False)
     R_DRAGON_IMG = pygame.image.load('./images/blueberry-dragon.png')
+    L_DRAGON_IMG = pygame.transform.flip(R_DRAGON_IMG, True, False)
 
     GRASSIMAGES = []
     for i in range(1, 4):
