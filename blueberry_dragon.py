@@ -1,4 +1,4 @@
-# Squirrel Eat Squirrel (a 2D Katamari Damacy clone)
+# Dragon Eat Dragon (a 2D Katamari Damacy clone)
 # By Al Sweigart al@inventwithpython.com
 # http://inventwithpython.com/pygame
 # Released under a "Simplified BSD" license
@@ -31,10 +31,10 @@ INVULNTIME = 2                            # how long the player is invulnerable 
 GAMEOVERTIME = 4                          # how long the "game over" text stays on the screen in seconds
 MAXHEALTH = 3                             # how much health the player starts with
 
-NUM_ROCKS = 80                             # number of grass objects in the active area
-NUM_DRAGONS = 30                         # number of dragons in the active area
-SQUIRRELMINSPEED = 3                      # slowest dragon speed
-SQUIRRELMAXSPEED = 7                      # fastest dragon speed
+NUM_ROCKS = 80                            # number of grass objects in the active area
+NUM_DRAGONS = 30                          # number of dragons in the active area
+DRAGONMINSPEED = 3                        # slowest dragon speed
+DRAGONMAXSPEED = 7                        # fastest dragon speed
 DIRCHANGEFREQ = 2                         # % chance of direction change per frame
 LEFT = 'left'
 RIGHT = 'right'
@@ -54,7 +54,7 @@ Player data structure keys:
     'bounce' - represents at what point in a bounce the player is in. 0 means standing (no bounce), up to BOUNCERATE (the completion of the bounce)
     'health' - an integer showing how many more times the player can be hit by a larger dragon before dying.
     
-Enemy Squirrel data structure keys:
+Enemy Dragon data structure keys:
     'surface' - the pygame.Surface object that stores the image of the dragon which will be drawn to the screen.
     'movex' - how many pixels per frame the dragon moves horizontally. A negative integer is moving to the left, a positive to the right.
     'movey' - how many pixels per frame the dragon moves vertically. A negative integer is moving up, a positive moving down.
@@ -95,8 +95,8 @@ class BDGame:
 
     NUM_ROCKS = 80  # number of rock objects in the active area
     NUM_DRAGONS = 30  # number of dragons in the active area
-    SQUIRRELMINSPEED = 3  # slowest dragon speed
-    SQUIRRELMAXSPEED = 7  # fastest dragon speed
+    DRAGONMINSPEED = 3  # slowest dragon speed
+    DRAGONMAXSPEED = 7  # fastest dragon speed
     DIRCHANGEFREQ = 2  # % chance of direction change per frame
     LEFT = 'left'
     RIGHT = 'right'
@@ -217,7 +217,7 @@ class BDGame:
 
     @staticmethod
     def _get_random_velocity():
-        speed = random.randint(SQUIRRELMINSPEED, SQUIRRELMAXSPEED)
+        speed = random.randint(DRAGONMINSPEED, DRAGONMAXSPEED)
         if random.randint(0, 1) == 0:
             return speed
         else:
